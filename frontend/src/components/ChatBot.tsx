@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { MessageCircle, X, Send, Bot, Loader2, Trash2 } from 'lucide-react'
 import { UserProfile } from '../lib/api'
+import { useLang } from '../contexts/LangContext'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -12,17 +13,6 @@ interface Props {
 }
 
 const API = import.meta.env.VITE_API_URL as string
-
-const WELCOME: Message = {
-  role: 'assistant',
-  content: 'Привет! Я Ментора — твой AI-помощник 👋\n\nМогу рассказать об актуальных возможностях, курсах, дедлайнах или ответить на любой вопрос. Что тебя интересует?',
-}
-
-const SUGGESTIONS = [
-  'Какие возможности подходят мне?',
-  'Покажи ближайшие дедлайны',
-  'Какие курсы есть на платформе?',
-]
 
 function TypingDots() {
   return (
@@ -61,18 +51,33 @@ function MessageBubble({ msg }: { msg: Message }) {
 }
 
 export default function ChatBot({ user }: Props) {
+  const { t, lang } = useLang()
+
+  const makeWelcome = (): Message => ({
+    role: 'assistant',
+    content: t('chat.welcome'),
+  })
+
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([WELCOME])
+  const [messages, setMessages] = useState<Message[]>([makeWelcome()])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
 
+  // Reset welcome message when language changes
   useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 100)
-    }
+    setMessages(prev => {
+      if (prev.length === 1 && prev[0].role === 'assistant') {
+        return [makeWelcome()]
+      }
+      return prev
+    })
+  }, [lang])
+
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 100)
   }, [open])
 
   useEffect(() => {
@@ -84,13 +89,12 @@ export default function ChatBot({ user }: Props) {
     if (!trimmed || streaming) return
 
     const userMsg: Message = { role: 'user', content: trimmed }
-    const history = messages.filter(m => m !== WELCOME)
+    const history = messages.filter(m => m.content !== t('chat.welcome'))
 
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setStreaming(true)
 
-    // Add empty assistant message to stream into
     const botMsg: Message = { role: 'assistant', content: '' }
     setMessages(prev => [...prev, botMsg])
 
@@ -111,7 +115,7 @@ export default function ChatBot({ user }: Props) {
       if (!response.ok || !response.body) {
         setMessages(prev => [
           ...prev.slice(0, -1),
-          { role: 'assistant', content: 'Не удалось получить ответ. Попробуй позже.' },
+          { role: 'assistant', content: t('chat.err1') },
         ])
         return
       }
@@ -137,7 +141,7 @@ export default function ChatBot({ user }: Props) {
             if (parsed.error) {
               setMessages(prev => [
                 ...prev.slice(0, -1),
-                { role: 'assistant', content: 'Ошибка: ' + parsed.error },
+                { role: 'assistant', content: t('chat.errPfx') + parsed.error },
               ])
               break
             }
@@ -157,7 +161,7 @@ export default function ChatBot({ user }: Props) {
       if (e?.name !== 'AbortError') {
         setMessages(prev => [
           ...prev.slice(0, -1),
-          { role: 'assistant', content: 'Что-то пошло не так. Попробуй ещё раз.' },
+          { role: 'assistant', content: t('chat.err2') },
         ])
       }
     } finally {
@@ -174,16 +178,16 @@ export default function ChatBot({ user }: Props) {
 
   const clearChat = () => {
     abortRef.current?.abort()
-    setMessages([WELCOME])
+    setMessages([makeWelcome()])
     setStreaming(false)
     setInput('')
   }
 
   const lastBotEmpty = messages[messages.length - 1]?.role === 'assistant' && messages[messages.length - 1]?.content === '' && streaming
+  const SUGGESTIONS = [t('chat.s1'), t('chat.s2'), t('chat.s3')]
 
   return (
     <>
-      {/* Chat panel */}
       {open && (
         <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 flex flex-col w-[calc(100vw-2rem)] max-w-sm h-[520px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-fade-in">
           {/* Header */}
@@ -193,11 +197,11 @@ export default function ChatBot({ user }: Props) {
             </div>
             <div className="flex-1">
               <p className="font-semibold text-sm leading-none">Ментора</p>
-              <p className="text-xs text-primary-200 mt-0.5">AI-помощник платформы</p>
+              <p className="text-xs text-primary-200 mt-0.5">{t('chat.sub')}</p>
             </div>
             <button
               onClick={clearChat}
-              title="Очистить чат"
+              title={t('chat.clear')}
               className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
             >
               <Trash2 size={14} />
@@ -219,7 +223,7 @@ export default function ChatBot({ user }: Props) {
             <div ref={bottomRef} />
           </div>
 
-          {/* Suggestions (show only at start) */}
+          {/* Suggestions */}
           {messages.length === 1 && !streaming && (
             <div className="px-4 pb-2 flex flex-wrap gap-1.5">
               {SUGGESTIONS.map(s => (
@@ -242,7 +246,7 @@ export default function ChatBot({ user }: Props) {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Напиши сообщение..."
+                placeholder={t('chat.ph')}
                 disabled={streaming}
                 className="flex-1 text-sm px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent resize-none disabled:opacity-50 bg-gray-50"
               />
@@ -251,10 +255,7 @@ export default function ChatBot({ user }: Props) {
                 disabled={!input.trim() || streaming}
                 className="p-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white rounded-xl transition-all shrink-0"
               >
-                {streaming
-                  ? <Loader2 size={16} className="animate-spin" />
-                  : <Send size={16} />
-                }
+                {streaming ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
               </button>
             </div>
           </div>
@@ -269,7 +270,7 @@ export default function ChatBot({ user }: Props) {
             ? 'bg-gray-700 hover:bg-gray-800 scale-90'
             : 'bg-primary-600 hover:bg-primary-700 hover:scale-105'
         } ${open ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-        title="Открыть чат"
+        title={t('chat.open')}
       >
         <MessageCircle size={24} className="text-white" />
       </button>

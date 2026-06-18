@@ -3,16 +3,18 @@ import { api, Post } from '../lib/api'
 import PostCard from '../components/PostCard'
 import { useAuth } from '../hooks/useAuth'
 import { Search, SlidersHorizontal, Compass, X } from 'lucide-react'
+import { useLang } from '../contexts/LangContext'
+import type { TKey } from '../lib/i18n'
 
-const CATEGORIES = [
-  { value: 'competition',    label: 'Конкурсы' },
-  { value: 'scholarship',    label: 'Стипендии' },
-  { value: 'summer_program', label: 'Летние программы' },
-  { value: 'hackathon',      label: 'Хакатоны' },
-  { value: 'olympiad',       label: 'Олимпиады' },
-  { value: 'internship',     label: 'Стажировки' },
-  { value: 'research',       label: 'Исследования' },
-  { value: 'event',          label: 'Мероприятия' },
+const CATEGORY_KEYS: { value: string; key: TKey }[] = [
+  { value: 'competition',    key: 'cat.competition' },
+  { value: 'scholarship',    key: 'cat.scholarship' },
+  { value: 'summer_program', key: 'cat.summer_program' },
+  { value: 'hackathon',      key: 'cat.hackathon' },
+  { value: 'olympiad',       key: 'cat.olympiad' },
+  { value: 'internship',     key: 'cat.internship' },
+  { value: 'research',       key: 'cat.research' },
+  { value: 'event',          key: 'cat.event' },
 ]
 
 const GRADES = [8, 9, 10, 11]
@@ -33,8 +35,7 @@ function SkeletonCard() {
 function matchesCategory(post: Post, cat: string): boolean {
   if (!cat) return true
   if (post.category === cat) return true
-  // fall back to tags in case AI hasn't categorized yet
-  return post.tags.some(t => t.toLowerCase().replace(/[\s_-]/g, '') === cat.replace(/[\s_-]/g, ''))
+  return post.tags.some(tag => tag.toLowerCase().replace(/[\s_-]/g, '') === cat.replace(/[\s_-]/g, ''))
 }
 
 function matchesSearch(post: Post, q: string): boolean {
@@ -43,7 +44,7 @@ function matchesSearch(post: Post, q: string): boolean {
   return (
     post.title.toLowerCase().includes(lq) ||
     (post.description ?? '').toLowerCase().includes(lq) ||
-    post.tags.some(t => t.toLowerCase().includes(lq))
+    post.tags.some(tag => tag.toLowerCase().includes(lq))
   )
 }
 
@@ -54,6 +55,7 @@ function matchesGrade(post: Post, grade: number): boolean {
 
 export default function Opportunities() {
   const { user } = useAuth()
+  const { t } = useLang()
   const [allPosts, setAllPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -98,7 +100,7 @@ export default function Opportunities() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
         <Compass size={24} className="text-primary-600" />
-        Возможности
+        {t('opp.title')}
       </h1>
 
       {/* Search */}
@@ -106,7 +108,7 @@ export default function Opportunities() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           className="input pl-9 pr-9"
-          placeholder="Поиск по названию, описанию, тегам..."
+          placeholder={t('opp.search')}
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -128,9 +130,9 @@ export default function Opportunities() {
               : 'border-gray-200 text-gray-600 hover:border-primary-300 hover:text-primary-600'
           }`}
         >
-          Все
+          {t('opp.all')}
         </button>
-        {CATEGORIES.map(c => (
+        {CATEGORY_KEYS.map(c => (
           <button
             key={c.value}
             onClick={() => setCategory(prev => prev === c.value ? '' : c.value)}
@@ -140,14 +142,14 @@ export default function Opportunities() {
                 : 'border-gray-200 text-gray-600 hover:border-primary-300 hover:text-primary-600'
             }`}
           >
-            {c.label}
+            {t(c.key)}
           </button>
         ))}
       </div>
 
       {/* Grade chips + clear */}
       <div className="flex items-center gap-2 mb-6">
-        <span className="text-xs text-gray-400 font-medium shrink-0">Класс:</span>
+        <span className="text-xs text-gray-400 font-medium shrink-0">{t('opp.grade')}</span>
         <div className="flex gap-1.5">
           {GRADES.map(g => (
             <button
@@ -169,7 +171,7 @@ export default function Opportunities() {
             className="ml-auto flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"
           >
             <X size={12} />
-            Сбросить
+            {t('opp.reset')}
           </button>
         )}
       </div>
@@ -177,7 +179,7 @@ export default function Opportunities() {
       {/* Results count */}
       {!loading && (search || category || grade > 0) && (
         <p className="text-sm text-gray-400 mb-4">
-          Найдено: <span className="font-semibold text-gray-700">{filtered.length}</span>
+          {t('opp.found')} <span className="font-semibold text-gray-700">{filtered.length}</span>
         </p>
       )}
 
@@ -190,13 +192,13 @@ export default function Opportunities() {
       {!loading && filtered.length === 0 && (
         <div className="text-center py-20">
           <SlidersHorizontal size={48} className="mx-auto text-gray-200 mb-4" />
-          <h3 className="font-semibold text-gray-700 mb-2">Ничего не нашлось</h3>
+          <h3 className="font-semibold text-gray-700 mb-2">{t('opp.nothing')}</h3>
           <p className="text-sm text-gray-400">
-            {activeFilters > 0 || search ? 'Попробуй изменить фильтры' : 'Пока нет опубликованных возможностей'}
+            {activeFilters > 0 || search ? t('opp.tryFilters') : t('opp.noPublished')}
           </p>
           {(activeFilters > 0 || search) && (
             <button onClick={clearAll} className="btn-secondary mt-4 text-sm">
-              Сбросить фильтры
+              {t('opp.resetBtn')}
             </button>
           )}
         </div>

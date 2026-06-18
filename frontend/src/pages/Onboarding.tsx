@@ -3,19 +3,22 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useLang } from '../contexts/LangContext'
+import type { TKey } from '../lib/i18n'
 
 const INTERESTS = ['STEM', 'Business', 'CS', 'Math', 'Language', 'Research', 'Olympiads', 'Entrepreneurship', 'Science', 'Social Impact']
 
-const GOALS = [
-  { value: 'university_abroad', label: 'Поступление за рубеж', emoji: '🌍' },
-  { value: 'olympiads',         label: 'Олимпиады',            emoji: '🏆' },
-  { value: 'startup',           label: 'Стартап',              emoji: '🚀' },
-  { value: 'research',          label: 'Исследования',         emoji: '🔬' },
+const GOAL_ITEMS: { value: string; key: TKey; emoji: string }[] = [
+  { value: 'university_abroad', key: 'onb.goal.university_abroad', emoji: '🌍' },
+  { value: 'olympiads',         key: 'onb.goal.olympiads',         emoji: '🏆' },
+  { value: 'startup',           key: 'onb.goal.startup',           emoji: '🚀' },
+  { value: 'research',          key: 'onb.goal.research',          emoji: '🔬' },
 ]
 
 export default function Onboarding() {
   const navigate = useNavigate()
   const { refresh } = useAuth()
+  const { t } = useLang()
   const [step, setStep] = useState(1)
   const [grade, setGrade] = useState<number | null>(null)
   const [interests, setInterests] = useState<string[]>([])
@@ -44,10 +47,9 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-indigo-50 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
-        {/* Progress bar */}
         <div className="mb-8">
           <div className="flex justify-between text-xs text-gray-400 mb-2">
-            <span>Шаг {step} из 3</span>
+            <span>{t('onb.step', { n: String(step) })}</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -59,11 +61,10 @@ export default function Onboarding() {
         </div>
 
         <div className="card p-8 animate-fade-in">
-          {/* Step 1: Grade */}
           {step === 1 && (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">В каком ты классе?</h2>
-              <p className="text-gray-500 mb-6">Мы подберём возможности под твой класс</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('onb.gradeQ')}</h2>
+              <p className="text-gray-500 mb-6">{t('onb.gradeHint')}</p>
               <div className="grid grid-cols-2 gap-4">
                 {[8, 9, 10, 11].map(g => (
                   <button
@@ -86,16 +87,15 @@ export default function Onboarding() {
                 disabled={!grade}
                 onClick={() => setStep(2)}
               >
-                Далее
+                {t('onb.next')}
               </button>
             </>
           )}
 
-          {/* Step 2: Interests */}
           {step === 2 && (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Что тебя интересует?</h2>
-              <p className="text-gray-500 mb-6">Выбери несколько направлений</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('onb.intQ')}</h2>
+              <p className="text-gray-500 mb-6">{t('onb.intHint')}</p>
               <div className="flex flex-wrap gap-2 mb-6">
                 {INTERESTS.map(interest => (
                   <button
@@ -114,19 +114,18 @@ export default function Onboarding() {
                 ))}
               </div>
               <div className="flex gap-3">
-                <button className="btn-secondary flex-1" onClick={() => setStep(1)}>Назад</button>
-                <button className="btn-primary flex-1" disabled={interests.length === 0} onClick={() => setStep(3)}>Далее</button>
+                <button className="btn-secondary flex-1" onClick={() => setStep(1)}>{t('onb.back')}</button>
+                <button className="btn-primary flex-1" disabled={interests.length === 0} onClick={() => setStep(3)}>{t('onb.next')}</button>
               </div>
             </>
           )}
 
-          {/* Step 3: Goals */}
           {step === 3 && (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Какая у тебя цель?</h2>
-              <p className="text-gray-500 mb-6">Можешь выбрать несколько</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('onb.goalQ')}</h2>
+              <p className="text-gray-500 mb-6">{t('onb.goalHint')}</p>
               <div className="grid grid-cols-2 gap-3 mb-6">
-                {GOALS.map(({ value, label, emoji }) => (
+                {GOAL_ITEMS.map(({ value, key, emoji }) => (
                   <button
                     key={value}
                     onClick={() => toggleGoal(value)}
@@ -140,19 +139,19 @@ export default function Onboarding() {
                   >
                     <div className="text-2xl mb-2">{emoji}</div>
                     <div className={`text-sm font-semibold ${goals.includes(value) ? 'text-primary-700' : 'text-gray-700'}`}>
-                      {label}
+                      {t(key)}
                     </div>
                   </button>
                 ))}
               </div>
               <div className="flex gap-3">
-                <button className="btn-secondary flex-1" onClick={() => setStep(2)}>Назад</button>
+                <button className="btn-secondary flex-1" onClick={() => setStep(2)}>{t('onb.back')}</button>
                 <button
                   className="btn-primary flex-1"
                   disabled={goals.length === 0 || saving}
                   onClick={handleFinish}
                 >
-                  {saving ? 'Сохраняем...' : 'Готово 🎉'}
+                  {saving ? t('onb.saving') : t('onb.done')}
                 </button>
               </div>
             </>

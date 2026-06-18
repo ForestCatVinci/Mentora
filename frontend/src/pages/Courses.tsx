@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api, Course, UserProfile } from '../lib/api'
 import CourseCard from '../components/CourseCard'
 import { BookOpen } from 'lucide-react'
+import { useLang } from '../contexts/LangContext'
 
 interface Props {
   user: UserProfile
@@ -27,6 +28,7 @@ export default function Courses({ user }: Props) {
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const { t } = useLang()
 
   useEffect(() => {
     api.getCourses(user.id).then(setCourses).finally(() => setLoading(false))
@@ -36,7 +38,7 @@ export default function Courses({ user }: Props) {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
         <BookOpen size={24} className="text-primary-600" />
-        Курсы
+        {t('courses.title')}
       </h1>
 
       {loading && (
@@ -48,8 +50,8 @@ export default function Courses({ user }: Props) {
       {!loading && courses.length === 0 && (
         <div className="text-center py-20">
           <BookOpen size={48} className="mx-auto text-gray-200 mb-4" />
-          <h3 className="font-semibold text-gray-700 mb-2">Курсы ещё не добавлены</h3>
-          <p className="text-sm text-gray-400">Скоро здесь появятся первые курсы</p>
+          <h3 className="font-semibold text-gray-700 mb-2">{t('courses.empty')}</h3>
+          <p className="text-sm text-gray-400">{t('courses.hint')}</p>
         </div>
       )}
 

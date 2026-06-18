@@ -1,15 +1,10 @@
 import { BookOpen, PlayCircle, CheckCircle } from 'lucide-react'
 import { Course } from '../lib/api'
+import { useLang } from '../contexts/LangContext'
 
 interface Props {
   course: Course
   onClick?: () => void
-}
-
-const difficultyLabel: Record<string, string> = {
-  beginner: 'Начальный',
-  intermediate: 'Средний',
-  advanced: 'Продвинутый',
 }
 
 const difficultyColor: Record<string, string> = {
@@ -19,6 +14,14 @@ const difficultyColor: Record<string, string> = {
 }
 
 export default function CourseCard({ course, onClick }: Props) {
+  const { t } = useLang()
+
+  const difficultyLabel: Record<string, string> = {
+    beginner: t('courses.beginner'),
+    intermediate: t('courses.intermediate'),
+    advanced: t('courses.advanced'),
+  }
+
   const allLessons = course.sections?.flatMap(s => s.lessons) ?? []
   const total = allLessons.length
   const completedIds = new Set(course.completed_lessons ?? [])
@@ -46,7 +49,7 @@ export default function CourseCard({ course, onClick }: Props) {
         {isEnrolled && progress === 100 && (
           <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
             <CheckCircle size={11} />
-            Завершён
+            {t('courses.done')}
           </div>
         )}
         {isEnrolled && progress > 0 && progress < 100 && (
@@ -65,7 +68,7 @@ export default function CourseCard({ course, onClick }: Props) {
             <span className="text-xs text-gray-400">{course.category}</span>
           )}
           {total > 0 && (
-            <span className="text-xs text-gray-400 ml-auto">{total} уроков</span>
+            <span className="text-xs text-gray-400 ml-auto">{total} {t('courses.lessons')}</span>
           )}
         </div>
 
@@ -79,7 +82,7 @@ export default function CourseCard({ course, onClick }: Props) {
         {isEnrolled && total > 0 && (
           <div className="mb-3">
             <div className="flex justify-between text-xs text-gray-400 mb-1">
-              <span>{completed} / {total} уроков</span>
+              <span>{completed} / {total} {t('courses.lessons')}</span>
               <span>{progress}%</span>
             </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -97,7 +100,7 @@ export default function CourseCard({ course, onClick }: Props) {
             : 'bg-gray-50 text-gray-600 group-hover:bg-primary-50 group-hover:text-primary-700'
         }`}>
           <PlayCircle size={16} />
-          {isEnrolled ? (progress > 0 ? 'Продолжить' : 'Начать') : 'Открыть курс'}
+          {isEnrolled ? (progress > 0 ? t('courses.cont') : t('courses.start')) : t('courses.open')}
         </div>
       </div>
     </article>

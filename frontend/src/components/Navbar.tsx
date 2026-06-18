@@ -1,34 +1,37 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, Rss, Compass, BookOpen, Map, Users, PlusSquare, LogOut, CalendarDays } from 'lucide-react'
 import { UserProfile } from '../lib/api'
+import { useLang } from '../contexts/LangContext'
+import LangSwitcher from './LangSwitcher'
 
 interface Props {
   user: UserProfile
   onSignOut: () => void
 }
 
-const navItems = [
-  { to: '/feed',          icon: Rss,            label: 'Лента' },
-  { to: '/opportunities', icon: Compass,         label: 'Возможности' },
-  { to: '/courses',       icon: BookOpen,        label: 'Курсы' },
-  { to: '/calendar',      icon: CalendarDays,    label: 'Календарь' },
-  { to: '/dashboard',     icon: LayoutDashboard, label: 'Кабинет' },
-]
-
-const allNavItems = [
-  { to: '/feed',          icon: Rss,            label: 'Лента' },
-  { to: '/opportunities', icon: Compass,         label: 'Возможности' },
-  { to: '/courses',       icon: BookOpen,        label: 'Курсы' },
-  { to: '/calendar',      icon: CalendarDays,    label: 'Календарь' },
-  { to: '/roadmap',       icon: Map,             label: 'Roadmap' },
-  { to: '/mentors',       icon: Users,           label: 'Менторы' },
-  { to: '/dashboard',     icon: LayoutDashboard, label: 'Кабинет' },
-]
-
 export default function Navbar({ user, onSignOut }: Props) {
   const navigate = useNavigate()
+  const { t } = useLang()
   const canCreatePost = user.role === 'staff' || user.role === 'admin' || user.role === 'mentor'
   const canCreateCourse = user.role === 'staff' || user.role === 'admin' || user.role === 'mentor'
+
+  const navItems = [
+    { to: '/feed',          icon: Rss,            label: t('nav.feed') },
+    { to: '/opportunities', icon: Compass,         label: t('nav.opportunities') },
+    { to: '/courses',       icon: BookOpen,        label: t('nav.courses') },
+    { to: '/calendar',      icon: CalendarDays,    label: t('nav.calendar') },
+    { to: '/dashboard',     icon: LayoutDashboard, label: t('nav.dashboard') },
+  ]
+
+  const allNavItems = [
+    { to: '/feed',          icon: Rss,            label: t('nav.feed') },
+    { to: '/opportunities', icon: Compass,         label: t('nav.opportunities') },
+    { to: '/courses',       icon: BookOpen,        label: t('nav.courses') },
+    { to: '/calendar',      icon: CalendarDays,    label: t('nav.calendar') },
+    { to: '/roadmap',       icon: Map,             label: t('nav.roadmap') },
+    { to: '/mentors',       icon: Users,           label: t('nav.mentors') },
+    { to: '/dashboard',     icon: LayoutDashboard, label: t('nav.dashboard') },
+  ]
 
   const handleSignOut = async () => {
     await onSignOut()
@@ -39,9 +42,13 @@ export default function Navbar({ user, onSignOut }: Props) {
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full w-60 bg-white border-r border-gray-100 px-4 py-6 z-40">
-        <div className="mb-8 px-2">
+        <div className="mb-4 px-2">
           <span className="text-xl font-bold text-primary-600">Mentoria</span>
           <span className="text-xl font-bold text-gray-900"> Hub</span>
+        </div>
+
+        <div className="mb-5 px-2">
+          <LangSwitcher />
         </div>
 
         <nav className="flex flex-col gap-1 flex-1">
@@ -68,7 +75,7 @@ export default function Navbar({ user, onSignOut }: Props) {
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-primary-600 hover:bg-primary-50 transition-all duration-150 mt-2"
             >
               <PlusSquare size={18} />
-              Создать пост
+              {t('nav.createPost')}
             </button>
           )}
 
@@ -78,7 +85,7 @@ export default function Navbar({ user, onSignOut }: Props) {
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-primary-600 hover:bg-primary-50 transition-all duration-150"
             >
               <PlusSquare size={18} />
-              Создать курс
+              {t('nav.createCourse')}
             </button>
           )}
         </nav>
@@ -88,7 +95,7 @@ export default function Navbar({ user, onSignOut }: Props) {
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-150 border border-red-100 mt-2"
         >
           <LogOut size={18} />
-          Выйти из аккаунта
+          {t('nav.signOut')}
         </button>
       </aside>
 
@@ -113,9 +120,14 @@ export default function Navbar({ user, onSignOut }: Props) {
           className="flex-1 flex flex-col items-center py-2 text-[10px] font-medium text-gray-400 hover:text-red-500 transition-colors duration-150"
         >
           <LogOut size={20} className="mb-0.5" />
-          Выйти
+          {t('nav.exit')}
         </button>
       </nav>
+
+      {/* Mobile language switcher — fixed top-right */}
+      <div className="md:hidden fixed top-3 right-3 z-50">
+        <LangSwitcher compact />
+      </div>
     </>
   )
 }

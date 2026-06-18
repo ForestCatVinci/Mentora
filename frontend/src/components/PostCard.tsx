@@ -3,6 +3,8 @@ import { Bookmark, BookmarkCheck, Calendar, ExternalLink, Pencil, Trash2 } from 
 import { api, Post } from '../lib/api'
 import TagBadge from './TagBadge'
 import EditPostModal from './EditPostModal'
+import { useLang } from '../contexts/LangContext'
+import type { TKey } from '../lib/i18n'
 
 interface Props {
   post: Post
@@ -12,16 +14,17 @@ interface Props {
   onDelete?: (postId: string) => void
 }
 
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-}
-
 function DateBadge({ post }: { post: Post }) {
+  const { t } = useLang()
+  const locale = t('post.locale' as TKey)
+
+  const fmt = (d: string) => new Date(d).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+
   if (post.deadline_date && post.end_date) {
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
         <Calendar size={11} />
-        {formatDate(post.deadline_date)} — {formatDate(post.end_date)}
+        {fmt(post.deadline_date)} — {fmt(post.end_date)}
       </span>
     )
   }
@@ -31,18 +34,18 @@ function DateBadge({ post }: { post: Post }) {
     if (daysLeft <= 7)
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-          <Calendar size={11} /> {daysLeft} дн. осталось
+          <Calendar size={11} /> {t('post.daysLeft', { n: String(daysLeft) })}
         </span>
       )
     if (daysLeft <= 42)
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-          <Calendar size={11} /> {daysLeft} дн. осталось
+          <Calendar size={11} /> {t('post.daysLeft', { n: String(daysLeft) })}
         </span>
       )
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-        <Calendar size={11} /> до {formatDate(post.deadline_date)}
+        <Calendar size={11} /> {t('post.until', { date: fmt(post.deadline_date) })}
       </span>
     )
   }
@@ -50,6 +53,7 @@ function DateBadge({ post }: { post: Post }) {
 }
 
 export default function PostCard({ post, currentUserId, onToggleSave, onUpdate, onDelete }: Props) {
+  const { t } = useLang()
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -91,14 +95,12 @@ export default function PostCard({ post, currentUserId, onToggleSave, onUpdate, 
                   <button
                     onClick={() => setEditing(true)}
                     className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-                    title="Редактировать"
                   >
                     <Pencil size={15} />
                   </button>
                   <button
                     onClick={() => setConfirmDelete(true)}
                     className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
-                    title="Удалить"
                   >
                     <Trash2 size={15} />
                   </button>
@@ -137,25 +139,25 @@ export default function PostCard({ post, currentUserId, onToggleSave, onUpdate, 
               className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
             >
               <ExternalLink size={14} />
-              Подробнее
+              {t('post.details')}
             </a>
           )}
 
           {confirmDelete && (
             <div className="mt-3 flex items-center gap-3 bg-red-50 rounded-xl px-3 py-2">
-              <p className="text-sm text-red-600 flex-1">Удалить пост?</p>
+              <p className="text-sm text-red-600 flex-1">{t('post.deleteQ')}</p>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
                 className="text-sm font-semibold text-red-600 hover:text-red-700"
               >
-                {deleting ? '...' : 'Да'}
+                {deleting ? '...' : t('post.yes')}
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
                 className="text-sm font-medium text-gray-500 hover:text-gray-700"
               >
-                Нет
+                {t('post.no')}
               </button>
             </div>
           )}

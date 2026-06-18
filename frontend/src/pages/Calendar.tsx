@@ -1,19 +1,14 @@
 import { useEffect, useState, useMemo } from 'react'
 import { api, Post, UserProfile } from '../lib/api'
 import { ChevronLeft, ChevronRight, CalendarDays, Clock, ExternalLink } from 'lucide-react'
+import { useLang } from '../contexts/LangContext'
+import type { TKey } from '../lib/i18n'
 
 interface Props {
   user: UserProfile
 }
 
-const MONTHS_RU = [
-  'Январь','Февраль','Март','Апрель','Май','Июнь',
-  'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь',
-]
-const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
-
 function toLocalDate(str: string) {
-  // parse YYYY-MM-DD without timezone shift
   const [y, m, d] = str.split('-').map(Number)
   return new Date(y, m - 1, d)
 }
@@ -50,7 +45,6 @@ function daysInMonth(year: number, month: number) {
 }
 
 function firstWeekdayOfMonth(year: number, month: number) {
-  // 0=Mon .. 6=Sun
   return (new Date(year, month, 1).getDay() + 6) % 7
 }
 
@@ -58,47 +52,23 @@ function isPeriod(post: Post) {
   return !!post.deadline_date && !!post.end_date
 }
 
-function formatDateRu(dateStr: string) {
-  const d = toLocalDate(dateStr)
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
-}
-
-function EventChip({ post }: { post: Post }) {
-  const period = isPeriod(post)
-  return (
-    <div className={`rounded-xl p-3 border ${period ? 'bg-blue-50 border-blue-100' : 'bg-red-50 border-red-100'}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-gray-900 leading-tight mb-1">{post.title}</p>
-          <div className={`flex items-center gap-1 text-xs font-medium ${period ? 'text-blue-600' : 'text-red-600'}`}>
-            <Clock size={11} />
-            {period
-              ? `${formatDateRu(post.deadline_date!)} — ${formatDateRu(post.end_date!)}`
-              : `Дедлайн: ${formatDateRu(post.deadline_date!)}`
-            }
-          </div>
-          {post.description && (
-            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{post.description}</p>
-          )}
-        </div>
-        {post.link && (
-          <a href={post.link} target="_blank" rel="noopener noreferrer"
-            className={`shrink-0 p-1.5 rounded-lg transition-colors ${period ? 'text-blue-500 hover:bg-blue-100' : 'text-red-500 hover:bg-red-100'}`}>
-            <ExternalLink size={14} />
-          </a>
-        )}
-      </div>
-    </div>
-  )
-}
-
 export default function CalendarPage({ user }: Props) {
   const today = new Date()
+  const { t } = useLang()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [selectedDay, setSelectedDay] = useState<string | null>(dateKey(today))
   const [savedPosts, setSavedPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+
+  const MONTHS = Array.from({ length: 12 }, (_, i) => t(`month.${i}` as TKey))
+  const DAYS = Array.from({ length: 7 }, (_, i) => t(`day.${i}` as TKey))
+  const locale = t('cal.locale')
+
+  const formatDate = (dateStr: string) => {
+    const d = toLocalDate(dateStr)
+    return d.toLocaleDateString(locale, { day: 'numeric', month: 'long' })
+  }
 
   useEffect(() => {
     api.getFeed(user.id)
@@ -122,7 +92,6 @@ export default function CalendarPage({ user }: Props) {
   const totalCells = Math.ceil((offset + totalDays) / 7) * 7
 
   const selectedEvents = selectedDay ? (eventMap.get(selectedDay) ?? []) : []
-  // Deduplicate by post id (period events appear multiple days)
   const uniqueEvents = selectedEvents.filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i)
 
   const todayKey = dateKey(today)
@@ -131,10 +100,9 @@ export default function CalendarPage({ user }: Props) {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
         <CalendarDays size={24} className="text-primary-600" />
-        Календарь
+        {t('cal.title')}
       </h1>
 
-      {/* Calendar card */}
       <div className="card p-5 mb-5">
         {/* Month nav */}
         <div className="flex items-center justify-between mb-5">
@@ -143,7 +111,7 @@ export default function CalendarPage({ user }: Props) {
             <ChevronLeft size={18} />
           </button>
           <span className="font-bold text-gray-900 text-base">
-            {MONTHS_RU[month]} {year}
+            {MONTHS[month]} {year}
           </span>
           <button onClick={nextMonth}
             className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors">
@@ -153,8 +121,8 @@ export default function CalendarPage({ user }: Props) {
 
         {/* Day headers */}
         <div className="grid grid-cols-7 mb-2">
-          {DAYS_RU.map((d, i) => (
-            <div key={d} className={`text-center text-xs font-semibold py-1 ${i >= 5 ? 'text-red-400' : 'text-gray-400'}`}>
+          {DAYS.map((d, i) => (
+            <div key={i} className={`text-center text-xs font-semibold py-1 ${i >= 5 ? 'text-red-400' : 'text-gray-400'}`}>
               {d}
             </div>
           ))}
@@ -174,8 +142,6 @@ export default function CalendarPage({ user }: Props) {
             const isSelected = key === selectedDay
             const isWeekend = (i % 7) >= 5
 
-            // Count distinct posts (period events span multiple days)
-            const uniqueCount = new Set(events.map(e => e.id)).size
             const deadlineCount = events.filter(e => !isPeriod(e)).length
             const periodCount = events.filter(e => isPeriod(e)).length
 
@@ -213,11 +179,11 @@ export default function CalendarPage({ user }: Props) {
         <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-50">
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
-            Дедлайн
+            {t('cal.deadline')}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
-            Мероприятие
+            {t('cal.event')}
           </div>
         </div>
       </div>
@@ -226,30 +192,55 @@ export default function CalendarPage({ user }: Props) {
       {selectedDay && (
         <div>
           <h2 className="font-bold text-gray-800 mb-3 text-sm">
-            {formatDateRu(selectedDay)}
+            {formatDate(selectedDay)}
             {uniqueEvents.length > 0 && (
               <span className="ml-2 text-xs font-normal text-gray-400">
-                {uniqueEvents.length} {uniqueEvents.length === 1 ? 'событие' : 'событий'}
+                {uniqueEvents.length} {uniqueEvents.length === 1 ? t('cal.event1') : t('cal.eventsN')}
               </span>
             )}
           </h2>
 
           {loading && (
-            <div className="text-center py-8 text-gray-400 text-sm">Загрузка...</div>
+            <div className="text-center py-8 text-gray-400 text-sm">{t('cal.loading')}</div>
           )}
 
           {!loading && uniqueEvents.length === 0 && (
             <div className="text-center py-8">
               <CalendarDays size={36} className="mx-auto text-gray-200 mb-2" />
-              <p className="text-sm text-gray-400">Нет сохранённых событий на этот день</p>
-              <p className="text-xs text-gray-300 mt-1">Сохраняй интересные возможности — они появятся здесь</p>
+              <p className="text-sm text-gray-400">{t('cal.noEvents')}</p>
+              <p className="text-xs text-gray-300 mt-1">{t('cal.saveHint')}</p>
             </div>
           )}
 
           <div className="space-y-3">
-            {uniqueEvents.map(post => (
-              <EventChip key={post.id} post={post} />
-            ))}
+            {uniqueEvents.map(post => {
+              const period = isPeriod(post)
+              return (
+                <div key={post.id} className={`rounded-xl p-3 border ${period ? 'bg-blue-50 border-blue-100' : 'bg-red-50 border-red-100'}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-gray-900 leading-tight mb-1">{post.title}</p>
+                      <div className={`flex items-center gap-1 text-xs font-medium ${period ? 'text-blue-600' : 'text-red-600'}`}>
+                        <Clock size={11} />
+                        {period
+                          ? `${formatDate(post.deadline_date!)} — ${formatDate(post.end_date!)}`
+                          : `${t('cal.deadlineLbl')} ${formatDate(post.deadline_date!)}`
+                        }
+                      </div>
+                      {post.description && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{post.description}</p>
+                      )}
+                    </div>
+                    {post.link && (
+                      <a href={post.link} target="_blank" rel="noopener noreferrer"
+                        className={`shrink-0 p-1.5 rounded-lg transition-colors ${period ? 'text-blue-500 hover:bg-blue-100' : 'text-red-500 hover:bg-red-100'}`}>
+                        <ExternalLink size={14} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

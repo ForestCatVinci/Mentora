@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { api, Post, UserProfile } from '../lib/api'
 import PostCard from '../components/PostCard'
 import { LayoutDashboard, Edit2, Check, X } from 'lucide-react'
+import { useLang } from '../contexts/LangContext'
+import type { TKey } from '../lib/i18n'
 
 interface Props {
   user: UserProfile
@@ -9,15 +11,17 @@ interface Props {
 }
 
 const INTERESTS = ['STEM', 'Business', 'CS', 'Math', 'Language', 'Research', 'Olympiads', 'Entrepreneurship', 'Science', 'Social Impact']
-const GOALS_MAP: Record<string, string> = {
-  university_abroad: 'Поступление за рубеж',
-  olympiads: 'Олимпиады',
-  startup: 'Стартап',
-  research: 'Исследования',
+
+const GOAL_KEYS: Record<string, TKey> = {
+  university_abroad: 'goal.university_abroad',
+  olympiads:         'goal.olympiads',
+  startup:           'goal.startup',
+  research:          'goal.research',
 }
 
 export default function Dashboard({ user, onRefresh }: Props) {
   const isMentor = user.role === 'mentor'
+  const { t } = useLang()
   const [savedPosts, setSavedPosts] = useState<Post[]>([])
   const [editing, setEditing] = useState(false)
   const [nickname, setNickname] = useState(user.full_name ?? '')
@@ -80,7 +84,7 @@ export default function Dashboard({ user, onRefresh }: Props) {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
         <LayoutDashboard size={24} className="text-primary-600" />
-        Личный кабинет
+        {t('dash.title')}
       </h1>
 
       {/* Profile card */}
@@ -95,7 +99,7 @@ export default function Dashboard({ user, onRefresh }: Props) {
               <p className="text-sm text-gray-500">{user.email}</p>
               {user.grade && (
                 <span className="text-xs bg-primary-100 text-primary-700 font-semibold px-2.5 py-0.5 rounded-full mt-1 inline-block">
-                  {user.grade} класс
+                  {user.grade}{t('dash.gradeClass')}
                 </span>
               )}
             </div>
@@ -120,42 +124,42 @@ export default function Dashboard({ user, onRefresh }: Props) {
         {editing && (
           <div className="mb-4 space-y-3">
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Имя</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('dash.name')}</p>
               <input
                 className="input"
                 value={nickname}
                 onChange={e => setNickname(e.target.value)}
-                placeholder="Твоё имя"
+                placeholder={t('dash.yourName')}
               />
             </div>
 
             {isMentor ? (
               <>
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">О себе</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('dash.about')}</p>
                   <textarea
                     className="input resize-none"
                     rows={3}
                     value={bio}
                     onChange={e => setBio(e.target.value)}
-                    placeholder="Расскажи студентам о своём опыте и чем можешь помочь"
+                    placeholder={t('dash.tellStudents')}
                   />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Контакты</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('dash.contacts')}</p>
                   <div className="space-y-2">
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">@</span>
                       <input className="input pl-7" placeholder="Telegram username" value={telegram} onChange={e => setTelegram(e.target.value.replace('@', ''))} />
                     </div>
-                    <input className="input" type="tel" placeholder="Номер телефона" value={phone} onChange={e => setPhone(e.target.value)} />
-                    <input className="input" type="email" placeholder="Email для связи" value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
+                    <input className="input" type="tel" placeholder={t('dash.phonePh')} value={phone} onChange={e => setPhone(e.target.value)} />
+                    <input className="input" type="email" placeholder={t('dash.emailPh')} value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
                   </div>
                 </div>
               </>
             ) : (
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Класс</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('dash.grade')}</p>
                 <div className="flex gap-2">
                   {[8, 9, 10, 11].map(g => (
                     <button
@@ -179,12 +183,12 @@ export default function Dashboard({ user, onRefresh }: Props) {
         {isMentor ? (
           <div className="space-y-3">
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">О себе</p>
-              {bio ? <p className="text-sm text-gray-600 leading-relaxed">{bio}</p> : <span className="text-sm text-gray-400">Не указано</span>}
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('dash.about')}</p>
+              {bio ? <p className="text-sm text-gray-600 leading-relaxed">{bio}</p> : <span className="text-sm text-gray-400">{t('dash.notSetSg')}</span>}
             </div>
             {(telegram || phone || contactEmail) && (
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Контакты</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('dash.contacts')}</p>
                 <div className="flex flex-col gap-1">
                   {telegram && <span className="text-sm text-primary-600">@{telegram}</span>}
                   {phone && <span className="text-sm text-gray-600">{phone}</span>}
@@ -196,7 +200,7 @@ export default function Dashboard({ user, onRefresh }: Props) {
         ) : (
           <>
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Интересы</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('dash.interests')}</p>
               {editing ? (
                 <div className="flex flex-wrap gap-1.5">
                   {INTERESTS.map(i => (
@@ -219,7 +223,7 @@ export default function Dashboard({ user, onRefresh }: Props) {
                     ? user.interests.map(i => (
                         <span key={i} className="px-3 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">{i}</span>
                       ))
-                    : <span className="text-sm text-gray-400">Не указаны</span>
+                    : <span className="text-sm text-gray-400">{t('dash.notSet')}</span>
                   }
                 </div>
               )}
@@ -227,11 +231,11 @@ export default function Dashboard({ user, onRefresh }: Props) {
 
             {user.goals.length > 0 && (
               <div className="mt-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Цели</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('dash.goals')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {user.goals.map(g => (
                     <span key={g} className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
-                      {GOALS_MAP[g] ?? g}
+                      {GOAL_KEYS[g] ? t(GOAL_KEYS[g]) : g}
                     </span>
                   ))}
                 </div>
@@ -242,10 +246,10 @@ export default function Dashboard({ user, onRefresh }: Props) {
       </div>
 
       {/* Saved posts */}
-      <h2 className="font-bold text-gray-900 mb-4">Сохранённые посты</h2>
+      <h2 className="font-bold text-gray-900 mb-4">{t('dash.saved')}</h2>
       {savedPosts.length === 0 && (
         <div className="text-center py-12 text-gray-400">
-          <p className="text-sm">Пока ничего не сохранено</p>
+          <p className="text-sm">{t('dash.nothingSaved')}</p>
         </div>
       )}
       <div className="grid gap-4">

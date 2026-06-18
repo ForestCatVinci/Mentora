@@ -2,6 +2,7 @@ import { useFeed } from '../hooks/useFeed'
 import { UserProfile } from '../lib/api'
 import PostCard from '../components/PostCard'
 import { Rss } from 'lucide-react'
+import { useLang } from '../contexts/LangContext'
 
 interface Props {
   user: UserProfile
@@ -23,11 +24,12 @@ function SkeletonCard() {
 
 export default function Feed({ user }: Props) {
   const { posts, loading, error, toggleSave, updatePost, deletePost } = useFeed(user.id)
+  const { t } = useLang()
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 md:px-0">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">
-        Привет, {user.full_name?.split(' ')[0] ?? 'привет'} 👋
+        {t('feed.hi', { name: user.full_name?.split(' ')[0] ?? '' })}
       </h1>
 
       {loading && (
@@ -45,10 +47,8 @@ export default function Feed({ user }: Props) {
       {!loading && !error && posts.length === 0 && (
         <div className="text-center py-20">
           <Rss size={48} className="mx-auto text-gray-200 mb-4" />
-          <h3 className="font-semibold text-gray-700 mb-2">Лента пуста</h3>
-          <p className="text-sm text-gray-400">
-            Обнови интересы в профиле — мы подберём подходящие возможности
-          </p>
+          <h3 className="font-semibold text-gray-700 mb-2">{t('feed.empty')}</h3>
+          <p className="text-sm text-gray-400">{t('feed.hint')}</p>
         </div>
       )}
 

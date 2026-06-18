@@ -1,0 +1,290 @@
+================================================================================
+MENTORIA HUB — PRODUCT BRIEF
+Hackathon Presentation Document
+================================================================================
+
+
+WHAT IS MENTORIA HUB?
+----------------------
+Mentoria Hub is an all-in-one digital platform for high school students in
+Kazakhstan and the CIS region (grades 8–11) who want to build a strong future
+for themselves — whether that means getting into a top university abroad,
+winning olympiads, launching a startup, or doing research.
+
+The problem it solves: promising students in Kazakhstan have no single place
+where they can discover opportunities (competitions, scholarships, summer
+schools, internships), learn from structured courses, connect with mentors,
+and get personalized guidance — all at once. Information is scattered across
+Telegram channels, social media, and word-of-mouth. Students miss deadlines,
+don't know what's relevant for their grade, and have no roadmap.
+
+Mentoria Hub fixes all of that in one product.
+
+Live URL:  [your Vercel frontend URL]
+Backend:   https://mentoria-hub.fly.dev
+
+
+================================================================================
+WHO IS IT FOR?
+================================================================================
+
+PRIMARY USER: STUDENT (grades 8–11)
+  - Discovers opportunities filtered to their grade and interests
+  - Follows a grade-specific roadmap of what to do this year
+  - Takes structured courses (like Udemy, but for school-age students)
+  - Saves deadlines to a personal calendar
+  - Chats with an AI assistant that knows their profile and the platform
+  - Connects with real mentors
+
+SECONDARY USER: MENTOR
+  - University students or professionals who want to guide younger students
+  - Can publish posts about opportunities, events, scholarships
+  - Can create and publish full video courses with sections and lessons
+  - Has a profile page with contacts (Telegram, phone, email)
+  - Accessible through a special invite code (6767)
+
+
+================================================================================
+CORE FEATURES — WHAT THE PRODUCT ACTUALLY DOES
+================================================================================
+
+1. PERSONALIZED ONBOARDING
+   When a student registers, they go through a 3-step setup:
+   - Pick their grade (8 / 9 / 10 / 11)
+   - Pick their interest areas (STEM, Business, CS, Math, Research,
+     Olympiads, Entrepreneurship, Science, Social Impact, Language)
+   - Pick their goals (Study abroad / Olympiads / Startup / Research)
+   This data is stored in their profile and used to personalize everything.
+
+2. SMART FEED
+   The main page shows a personalized feed of posts — opportunities, events,
+   announcements — ranked by relevance to the student's interests and grade.
+   Each post card shows: title, image, category, deadline, description, and
+   tags. Students can save any post with one click.
+
+3. OPPORTUNITIES CATALOG
+   A filterable catalog of all available opportunities:
+   - Filter by category: Olympiad, Scholarship, Summer School, Internship,
+     Grant, Competition, Event, Course, Other
+   - Filter by grade: 8 / 9 / 10 / 11 (shows only relevant posts)
+   - Full-text search across title, description, and tags
+   - All filtering is instant (client-side, no loading)
+   - Each post can be saved/bookmarked
+
+4. COURSES (Udemy-style learning)
+   Mentors and staff can build full structured courses:
+   - Course has title, description, image, category, difficulty level
+     (beginner / intermediate / advanced)
+   - Inside each course: sections (chapters) → lessons (videos)
+   - Each lesson has a title and a YouTube video link
+   - Students enroll in a course, watch lessons, and mark them complete
+   - Progress is tracked per lesson (checkmark system)
+   - Unenrolled students see locked lessons (lock icon)
+   - Mentors use a visual course editor to build curriculum inline
+
+5. PERSONAL CALENDAR
+   - Students save posts that have deadlines or event date ranges
+   - The calendar page shows a full monthly view
+   - Red dot on a day = there's a deadline that day
+   - Blue dot on a day = a period event spans that day
+   - Click any day to see what's happening
+   - Helps students never miss an important deadline
+
+6. GRADE ROADMAP
+   A visual timeline for all 4 years of high school (grades 8–11):
+   - Each grade has curated action items: what competitions to enter,
+     what skills to build, what exams to prepare for
+   - The student's current grade is highlighted
+   - Each item is a checkbox — students tick off what they've done
+   - Progress is saved locally
+   - Examples: "Register for math olympiad", "Take IELTS (target 7.0+)",
+     "Apply for Bolashak / Chevening scholarship"
+
+7. AI CHATBOT — "MENTORA"
+   A floating chat assistant powered by GPT-4o-mini that:
+   - Knows the student's profile: name, grade, interests, goals
+   - Knows all currently published opportunities and their deadlines
+   - Knows all available courses on the platform
+   - Responds in the language the student writes in (Russian, Kazakh, English)
+   - Keeps conversation history (last 12 messages for context)
+   - Streams responses word-by-word (no waiting for full reply)
+   - Has quick suggestion chips: "Покажи ближайшие дедлайны",
+     "Что делать в 10 классе?", "Посоветуй курс"
+   - Always gives personalized answers based on the student's actual profile
+   The chatbot is not a generic ChatGPT wrapper — it's trained on the
+   platform's real data and responds with specific opportunity names,
+   deadlines, and course recommendations from the actual catalog.
+
+8. MENTOR DIRECTORY
+   - Browse all registered mentors on the platform
+   - Each mentor has a profile: name, university, speciality, bio
+   - Contact options: Telegram, phone, email
+   - Students can reach out directly
+
+9. STUDENT DASHBOARD
+   - Shows saved posts (the student's personal bookmarks)
+   - Can unsave posts
+   - Manage personal profile settings
+
+
+================================================================================
+TECHNICAL ARCHITECTURE
+================================================================================
+
+FRONTEND
+  - React 18 + TypeScript + Vite
+  - Tailwind CSS (custom design system with primary color tokens)
+  - React Router v6 (SPA with nested routes)
+  - Deployed on Vercel
+  - Mobile-responsive with bottom navigation bar
+
+BACKEND
+  - Python 3.12 + FastAPI
+  - Streaming SSE endpoint for AI chatbot (real-time word-by-word output)
+  - RESTful API: /auth, /posts, /courses, /feed, /mentors, /chat
+  - Deployed on Fly.io (Amsterdam region, Docker container, 256MB RAM)
+  - Auto-starts on traffic, auto-stops when idle (serverless-like behavior)
+
+DATABASE & AUTH
+  - Supabase (hosted PostgreSQL)
+  - Supabase Auth for email/password authentication
+  - Row-Level Security (RLS) enabled in DB; backend uses service_role key
+    to bypass RLS for trusted server-side operations
+  - Tables: users/profiles, posts, saved_posts, courses, sections, lessons,
+    enrollments, user_progress
+
+AI
+  - OpenAI GPT-4o-mini
+  - Custom system prompt built dynamically per request using the student's
+    profile + live data fetched from Supabase at request time
+  - Conversation history passed with each request (last 12 messages)
+  - Server-Sent Events (SSE) for streaming output to the browser
+
+USER ROLES
+  - student — default role after registration
+  - mentor — unlocked via special invite code (6767) at registration
+  - staff / admin — platform operators who can post and manage content
+
+
+================================================================================
+BUSINESS MODEL & COMMERCIAL POTENTIAL
+================================================================================
+
+THE MARKET
+  Kazakhstan alone has ~700,000 high school students in grades 8–11.
+  Across CIS (Russia, Uzbekistan, Kyrgyzstan, Azerbaijan, etc.) the
+  addressable market is in the tens of millions of students.
+
+  None of the existing platforms solve this problem completely:
+  - Yandex Uchebnik / Foxford: general school curriculum, no opportunities
+  - Telegram channels: no structure, no personalization, no tracking
+  - Khan Academy: US-focused, no local context, no opportunity discovery
+  - LinkedIn: not designed for 14–17 year olds, no structured learning
+
+REVENUE STREAMS (how the platform makes money)
+
+  1. PREMIUM SUBSCRIPTION (B2C)
+     Students pay a monthly fee (e.g., $5–10/month) for:
+     - Access to premium courses
+     - AI chatbot with unlimited usage
+     - Priority notifications for new opportunities
+     - Advanced calendar features and deadline reminders
+     Free tier: feed + basic catalog browsing
+
+  2. COURSE MARKETPLACE (B2C/B2B)
+     Mentors and experts sell courses on the platform.
+     Mentoria Hub takes a percentage (e.g., 30%) of each course sale.
+     This creates a marketplace model similar to Udemy.
+
+  3. OPPORTUNITY LISTINGS (B2B)
+     Organizations (universities, NGOs, government programs, companies)
+     pay to feature their opportunities prominently in the catalog and feed.
+     Targeted reach to students who actually match their requirements.
+
+  4. INSTITUTIONAL LICENSING (B2B)
+     Schools and lyceums pay for a white-labeled version of the platform
+     to use internally — giving their students access to the full platform
+     with the school's branding and curated content.
+
+  5. MENTOR MARKETPLACE (future)
+     Paid 1-on-1 mentoring sessions booked through the platform.
+     Mentoria Hub takes a platform fee on each booking.
+
+UNIT ECONOMICS (rough estimates)
+  - Cost to acquire one student: low (organic via school partnerships,
+    word-of-mouth, social media)
+  - Monthly subscription revenue per paying user: $5–10
+  - With 10,000 paying users: $50,000–$100,000 MRR
+  - Marginal cost per user is very low (serverless infra, AI cost ~$0.01
+    per conversation at GPT-4o-mini pricing)
+
+TRACTION POTENTIAL
+  - Platform is fully functional and live today
+  - Can onboard schools as early customers immediately
+  - Kazakhstan government has active digitalization programs in education
+    (potential for grants and government contracts)
+  - Bolashak, DAAD, Chevening — scholarship programs that would pay to
+    reach qualified students directly
+
+
+================================================================================
+WHAT MAKES IT DIFFERENT (THE PITCH)
+================================================================================
+
+1. NOT JUST A CATALOG — it's personalized. The feed, the AI, the roadmap all
+   adapt to WHO the student is: their grade, their interests, their goals.
+
+2. END-TO-END — from "I don't know what to do" to "I applied and got in":
+   discover → learn → track → connect → apply. One platform.
+
+3. LOCAL CONTEXT — designed specifically for Kazakh/CIS students.
+   It knows about Bolashak, NIS, olympiad seasons, local deadlines.
+   The AI responds in Russian and Kazakh. It's not a translated foreign product.
+
+4. AI THAT KNOWS YOUR DATA — the chatbot doesn't give generic advice.
+   It says "You're in grade 10, your deadline for the DAAD scholarship
+   is in 3 weeks, and you haven't enrolled in the English Writing course yet."
+
+5. MENTOR-STUDENT BRIDGE — real students and graduates from top universities
+   share knowledge and post opportunities. Not just algorithm-generated content.
+
+
+================================================================================
+CURRENT STATE (as of hackathon demo)
+================================================================================
+
+FULLY BUILT AND DEPLOYED:
+  [x] User registration and login (email/password)
+  [x] Role system: student / mentor / staff / admin
+  [x] Student onboarding (grade + interests + goals)
+  [x] Mentor profile creation
+  [x] Personalized feed with post cards
+  [x] Opportunities catalog with live filters
+  [x] Save/bookmark any post
+  [x] Full course system (create, edit, enroll, track progress)
+  [x] Personal calendar with deadline visualization
+  [x] Grade roadmap (8–11) with checkboxes
+  [x] AI chatbot "Mentora" with streaming, personalization, history
+  [x] Mentor directory with contact info
+  [x] Create/edit/delete posts (mentor + staff)
+  [x] Create/edit courses with curriculum builder (mentor + staff)
+  [x] Multi-language UI support (Russian / English / Kazakh switcher on landing)
+  [x] Mobile-responsive design
+  [x] Backend deployed: https://mentoria-hub.fly.dev
+  [x] Frontend deployed on Vercel
+
+TECH STACK SUMMARY:
+  Frontend:  React + TypeScript + Vite + Tailwind → Vercel
+  Backend:   Python FastAPI + OpenAI GPT-4o-mini → Fly.io (Docker)
+  Database:  Supabase (PostgreSQL + Auth + Storage)
+
+
+================================================================================
+TEAM / CONTACT
+================================================================================
+
+Email: snappy102204@gmail.com
+GitHub: https://github.com/ForestCatVinci
+
+
+================================================================================

@@ -1,11 +1,14 @@
 import { GraduationCap, Send, Phone, Mail } from 'lucide-react'
 import { Mentor } from '../lib/api'
+import { useLang } from '../contexts/LangContext'
 
 interface Props {
   mentor: Mentor
 }
 
 export default function MentorCard({ mentor }: Props) {
+  const { t } = useLang()
+
   const contacts = [
     mentor.telegram && {
       href: `https://t.me/${mentor.telegram}`,
@@ -74,11 +77,11 @@ export default function MentorCard({ mentor }: Props) {
         </div>
       ) : (
         <a
-          href={`mailto:?subject=Запись к ментору ${mentor.full_name}`}
+          href={`mailto:?subject=${mentor.full_name}`}
           className="btn-primary text-sm mt-auto flex items-center gap-2"
         >
           <Mail size={14} />
-          Связаться
+          {t('mentors.contact')}
         </a>
       )}
     </article>

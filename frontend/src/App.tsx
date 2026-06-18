@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
+import { LangProvider } from './contexts/LangContext'
 import Navbar from './components/Navbar'
 
 import Landing from './pages/Landing'
@@ -95,8 +96,10 @@ function AppShell() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppShell />
-    </BrowserRouter>
+    <LangProvider>
+      <BrowserRouter>
+        <AppShell />
+      </BrowserRouter>
+    </LangProvider>
   )
 }

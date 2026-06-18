@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, Mentor } from '../lib/api'
 import MentorCard from '../components/MentorCard'
 import { Users } from 'lucide-react'
+import { useLang } from '../contexts/LangContext'
 
 function SkeletonCard() {
   return (
@@ -19,6 +20,7 @@ function SkeletonCard() {
 export default function Mentors() {
   const [mentors, setMentors] = useState<Mentor[]>([])
   const [loading, setLoading] = useState(true)
+  const { t } = useLang()
 
   useEffect(() => {
     api.getMentors().then(setMentors).finally(() => setLoading(false))
@@ -28,9 +30,9 @@ export default function Mentors() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
         <Users size={24} className="text-primary-600" />
-        Менторы
+        {t('mentors.title')}
       </h1>
-      <p className="text-gray-500 text-sm mb-6">Свяжись с ментором из топовых университетов</p>
+      <p className="text-gray-500 text-sm mb-6">{t('mentors.sub')}</p>
 
       {loading && (
         <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-5">
@@ -41,8 +43,8 @@ export default function Mentors() {
       {!loading && mentors.length === 0 && (
         <div className="text-center py-20">
           <Users size={48} className="mx-auto text-gray-200 mb-4" />
-          <h3 className="font-semibold text-gray-700 mb-2">Менторы скоро появятся</h3>
-          <p className="text-sm text-gray-400">Мы активно набираем менторов из ведущих вузов</p>
+          <h3 className="font-semibold text-gray-700 mb-2">{t('mentors.soon')}</h3>
+          <p className="text-sm text-gray-400">{t('mentors.hiring')}</p>
         </div>
       )}
 

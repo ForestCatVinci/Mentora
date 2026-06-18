@@ -4,10 +4,12 @@ import { api } from '../lib/api'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { GraduationCap } from 'lucide-react'
+import { useLang } from '../contexts/LangContext'
 
 export default function MentorOnboarding() {
   const navigate = useNavigate()
   const { refresh } = useAuth()
+  const { t } = useLang()
   const [fullName, setFullName] = useState('')
   const [university, setUniversity] = useState('')
   const [speciality, setSpeciality] = useState('')
@@ -36,7 +38,7 @@ export default function MentorOnboarding() {
       await refresh()
       navigate('/feed')
     } catch (e: any) {
-      setError(e.message || 'Ошибка сохранения')
+      setError(e.message || t('mo.saveErr'))
     } finally {
       setSaving(false)
     }
@@ -51,8 +53,8 @@ export default function MentorOnboarding() {
               <GraduationCap size={20} className="text-primary-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Профиль ментора</h2>
-              <p className="text-sm text-gray-500">Расскажи о себе студентам</p>
+              <h2 className="text-xl font-bold text-gray-900">{t('mo.title')}</h2>
+              <p className="text-sm text-gray-500">{t('mo.sub')}</p>
             </div>
           </div>
 
@@ -60,37 +62,37 @@ export default function MentorOnboarding() {
 
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Имя *</label>
-              <input className="input mt-1" placeholder="Твоё полное имя" value={fullName} onChange={e => setFullName(e.target.value)} />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('mo.name')}</label>
+              <input className="input mt-1" placeholder={t('mo.namePh')} value={fullName} onChange={e => setFullName(e.target.value)} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Университет</label>
-              <input className="input mt-1" placeholder="Например: MIT, НУ, КБТУ" value={university} onChange={e => setUniversity(e.target.value)} />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('mo.uni')}</label>
+              <input className="input mt-1" placeholder={t('mo.uniPh')} value={university} onChange={e => setUniversity(e.target.value)} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Специальность</label>
-              <input className="input mt-1" placeholder="Например: Computer Science" value={speciality} onChange={e => setSpeciality(e.target.value)} />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('mo.spec')}</label>
+              <input className="input mt-1" placeholder={t('mo.specPh')} value={speciality} onChange={e => setSpeciality(e.target.value)} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">О себе</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('mo.about')}</label>
               <textarea
                 className="input mt-1 resize-none"
                 rows={3}
-                placeholder="Расскажи студентам о своём опыте и чем можешь помочь"
+                placeholder={t('mo.aboutPh')}
                 value={bio}
                 onChange={e => setBio(e.target.value)}
               />
             </div>
 
             <div className="border-t border-gray-100 pt-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Контакты (необязательно)</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{t('mo.contacts')}</p>
               <div className="space-y-3">
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">@</span>
-                  <input className="input pl-7" placeholder="username в Telegram" value={telegram} onChange={e => setTelegram(e.target.value.replace('@', ''))} />
+                  <input className="input pl-7" placeholder={t('mo.tgPh')} value={telegram} onChange={e => setTelegram(e.target.value.replace('@', ''))} />
                 </div>
-                <input className="input" type="tel" placeholder="Номер телефона" value={phone} onChange={e => setPhone(e.target.value)} />
-                <input className="input" type="email" placeholder="Email для связи" value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
+                <input className="input" type="tel" placeholder={t('mo.phonePh')} value={phone} onChange={e => setPhone(e.target.value)} />
+                <input className="input" type="email" placeholder={t('mo.emailPh')} value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
               </div>
             </div>
           </div>
@@ -100,7 +102,7 @@ export default function MentorOnboarding() {
             onClick={handleFinish}
             disabled={saving || !fullName.trim()}
           >
-            {saving ? 'Сохраняем...' : 'Готово 🎉'}
+            {saving ? t('mo.saving') : t('mo.done')}
           </button>
         </div>
       </div>
