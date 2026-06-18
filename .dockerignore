@@ -1,0 +1,12 @@
+frontend/
+backend/.env
+backend/__pycache__/
+backend/routers/__pycache__/
+backend/services/__pycache__/
+**/__pycache__/
+*.pyc
+.git/
+.gitignore
+supabase/
+*.txt
+*.md
