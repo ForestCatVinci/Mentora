@@ -1,0 +1,3 @@
+Failed to run sql query: ERROR:  55P04: unsafe use of new value "mentor" of enum type user_role
+
+HINT:  New enum values must be committed before they can be used.

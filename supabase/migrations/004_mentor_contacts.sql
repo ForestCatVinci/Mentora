@@ -1,0 +1,3 @@
+ALTER TABLE public.mentors ADD COLUMN IF NOT EXISTS telegram TEXT;
+ALTER TABLE public.mentors ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE public.mentors ADD COLUMN IF NOT EXISTS contact_email TEXT;

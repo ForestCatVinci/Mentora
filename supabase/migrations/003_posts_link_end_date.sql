@@ -1,0 +1,2 @@
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS link TEXT;
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS end_date DATE;
